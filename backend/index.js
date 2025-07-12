@@ -11,8 +11,11 @@ const app = express();
 
 // Habilitar CORS para permitir conexiones desde cualquier frontend
 app.use(cors({
-  origin: '*',
+  origin: 'https://stock-app-cruzguillermos-projects.vercel.app',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
 }));
+
 app.use(express.json());
 
 // Ruta de prueba
