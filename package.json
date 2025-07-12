@@ -1,0 +1,42 @@
+{
+  "name": "stock-app",
+  "version": "1.0.0",
+  "main": "electron.js",
+"scripts": {
+  "dev-frontend": "cd frontend && npm run dev",
+  "dev-backend": "cd backend && node index.js",
+  "dev": "concurrently \"npm run dev-backend\" \"npm run dev-frontend\" \"npx electron electron.js\"",
+  "build-frontend": "cd frontend && npm run build",
+  "build-backend": "cd backend && npm install",
+  "build": "npm run build-frontend && npm run build-backend && electron-builder"
+}
+,
+  "devDependencies": {
+    "concurrently": "^8.2.0",
+    "electron": "^30.0.0",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "com.guillermo.stock-app",
+    "productName": "stock-app",
+    "files": [
+      "frontend/dist/**/*",
+      "backend/**/*",
+      "electron.js",
+      "preload.js",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "backend/database.sqlite",
+        "to": "database.sqlite"
+      }
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": "nsis"
+    }
+  }
+}

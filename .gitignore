@@ -1,0 +1,33 @@
+# Node modules
+node_modules/
+
+# Carpetas de distribución y empaquetado
+dist/
+build/
+out/
+
+# Archivos binarios y ejecutables grandes
+*.exe
+*.dll
+*.blockmap
+*.pak
+*.zip
+*.tar
+*.gz
+
+# Archivos generados por Electron o Vite
+.vite/
+.vscode/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Archivos de entorno
+.env
+.env.local
+.env.*.local
+
+# Sistema operativo (Windows/macOS)
+.DS_Store
+Thumbs.db

@@ -1,0 +1,10 @@
+@media (max-width: 576px) {
+  table.table td, table.table th {
+    padding: 0.3rem 0.5rem;
+    font-size: 0.85rem;
+  }
+  button.btn-sm {
+    padding: 0.25rem 0.4rem;
+    font-size: 0.75rem;
+  }
+}
