@@ -7,32 +7,29 @@ const ingresosStockRoutes = require('./routes/ingresosStock');
 const ofertasRoutes = require('./routes/ofertas');
 const resumenRoutes = require('./routes/resumen');
 
-
 const app = express();
-const port = 3001;
 
-// Habilitar CORS para permitir conexiones desde el frontend en el celular
+// Habilitar CORS para permitir conexiones desde cualquier frontend
 app.use(cors({
-  origin: '*', // O podés poner: 'http://192.168.100.47:5173' si querés limitarlo
+  origin: '*',
 }));
-
 app.use(express.json());
 
+// Ruta de prueba
 app.get('/', (req, res) => {
-  res.send('API backend corriendo con base de datos');
+  res.send('✅ API backend corriendo con base de datos PostgreSQL');
 });
 
-// Rutas
-app.use('/productos', productosRoutes);
-app.use('/ventas', ventasRoutes);
-app.use('/ingresos-stock', ingresosStockRoutes);
-app.use('/ofertas', ofertasRoutes);
-app.use('/resumen', resumenRoutes);
+// Rutas con prefijo común
+app.use('/api/productos', productosRoutes);
+app.use('/api/ventas', ventasRoutes);
+app.use('/api/ingresos-stock', ingresosStockRoutes);
+app.use('/api/ofertas', ofertasRoutes);
+app.use('/api/resumen', resumenRoutes);
 
-
+// Verificación de conexión a la base de datos
 const pool = require('./db/database');
-
-app.get('/ping-db', async (req, res) => {
+app.get('/api/ping-db', async (req, res) => {
   try {
     const result = await pool.query('SELECT NOW()');
     res.json({ status: 'ok', time: result.rows[0].now });
@@ -42,8 +39,8 @@ app.get('/ping-db', async (req, res) => {
   }
 });
 
-
-// Escuchar en todas las interfaces (para poder acceder desde la red)
-app.listen(port, '0.0.0.0', () => {
-  console.log(`🚀 Backend escuchando en http://0.0.0.0:${port}`);
+// Escuchar en puerto dinámico (Render lo asigna automáticamente)
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+  console.log(`🚀 Servidor backend corriendo en puerto ${PORT}`);
 });
