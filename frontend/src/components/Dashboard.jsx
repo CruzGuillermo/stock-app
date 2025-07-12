@@ -9,19 +9,19 @@ const Dashboard = () => {
   const [productosBajoStock, setProductosBajoStock] = useState([]);
 
   useEffect(() => {
-    axios.get('http://localhost:3001/resumen/stock-total')
+    axios.get('/resumen/stock-total')
       .then(res => setStockTotal(res.data.stock_total))
       .catch(console.error);
 
-    axios.get('http://localhost:3001/ingresos-stock/inversion-total')
+    axios.get('/inversion-total')
       .then(res => setInversionTotal(res.data.inversion_total))
       .catch(console.error);
 
-    axios.get('http://localhost:3001/ventas/hoy')
+    axios.get('/ventas/hoy')
       .then(res => setVentasHoy(res.data.total_hoy))
       .catch(console.error);
 
-    axios.get('http://localhost:3001/productos/stock-bajo')
+    axios.get('/productos/stock-bajo')
       .then(res => setProductosBajoStock(res.data))
       .catch(console.error);
   }, []);
