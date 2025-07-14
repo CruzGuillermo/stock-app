@@ -12,13 +12,14 @@ import IngresosStock from './components/IngresosStock';
 import ResumenFinanciero from './components/ResumenFinanciero';
 import VenderOferta from './components/VenderOferta';
 import HistorialIngreso from './components/HistorialIngreso'; // Importar el componente
-
+import Fiados from './components/Fiados';
 function App() {
   return (
     <Router>
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
+          <Route path="/ventas/fiados" element={<Fiados />} />
           <Route path="productos" element={<Productos />} />
           <Route path="stock" element={<Stock />} />
           <Route path="ofertas" element={<OfertasEspeciales />} />

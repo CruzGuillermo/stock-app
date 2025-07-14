@@ -14,25 +14,19 @@ export default function DetalleVenta() {
   }, [id]);
 
   const descargarTicket = async () => {
-  try {
-    const response = await axios.get(`/ventas/${id}/ticket`, {
-      responseType: 'blob', // 👈 para que descargue el archivo correctamente
-    });
-
-    const blob = new Blob([response.data], { type: 'application/pdf' });
-    const url = window.URL.createObjectURL(blob);
-
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `ticket-venta-${id}.pdf`;
-    link.click();
-
-    window.URL.revokeObjectURL(url); // limpia el objeto blob temporal
-  } catch (error) {
-    Swal.fire('Error', 'No se pudo descargar el ticket.', 'error');
-    console.error('Error descargando ticket:', error);
-  }
-};
+    try {
+      const response = await axios.get(`/ventas/${id}/ticket`, { responseType: 'blob' });
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `ticket-venta-${id}.pdf`;
+      link.click();
+      window.URL.revokeObjectURL(url);
+    } catch {
+      Swal.fire('Error', 'No se pudo descargar el ticket.', 'error');
+    }
+  };
 
   const cargarDetalle = async () => {
     try {
@@ -44,6 +38,7 @@ export default function DetalleVenta() {
           ...p,
           precio_unitario: Number(p.precio_unitario),
           cantidad: Number(p.cantidad),
+          descuento: Number(p.descuento) || 0,
         })),
       };
       setVenta(venta);
@@ -67,18 +62,20 @@ export default function DetalleVenta() {
 
     try {
       await axios.delete(`/ventas/${id}`);
-      await Swal.fire({
-        title: 'Venta anulada',
-        text: 'El stock fue restaurado correctamente.',
-        icon: 'success',
-      });
+      await Swal.fire('Venta anulada', 'El stock fue restaurado correctamente.', 'success');
       navigate('/ventas/historial');
     } catch {
-      Swal.fire({
-        title: 'Error',
-        text: 'No se pudo anular la venta.',
-        icon: 'error',
-      });
+      Swal.fire('Error', 'No se pudo anular la venta.', 'error');
+    }
+  };
+
+  const marcarComoPagada = async () => {
+    try {
+      await axios.patch(`/ventas/${id}/pagar`);
+      Swal.fire('Éxito', 'Venta fiada marcada como pagada.', 'success');
+      cargarDetalle();
+    } catch {
+      Swal.fire('Error', 'No se pudo marcar la venta como pagada.', 'error');
     }
   };
 
@@ -91,10 +88,7 @@ export default function DetalleVenta() {
 
   if (!venta)
     return (
-      <div
-        className="container mt-5 d-flex justify-content-center align-items-center"
-        style={{ height: '200px' }}
-      >
+      <div className="container mt-5 d-flex justify-content-center align-items-center" style={{ height: '200px' }}>
         <div className="spinner-border text-primary" role="status">
           <span className="visually-hidden">Cargando...</span>
         </div>
@@ -103,48 +97,76 @@ export default function DetalleVenta() {
 
   return (
     <div className="container mt-5" style={{ maxWidth: '720px' }}>
-      <div className="bg-white p-4 rounded shadow-sm border">
-        <div className="mb-4 text-center">
-          <h2 className="fw-bold text-primary">
-            🧾 Detalle de Venta <span className="text-muted">#{venta.id}</span>
+      <div className="card shadow-sm border-0">
+        <div className="card-header bg-primary text-white text-center">
+          <h2 className="fw-bold mb-0">
+            🧾 Detalle de Venta <span className="text-light">#{venta.id}</span>
           </h2>
-          <p className="text-muted mb-0">
-            {new Date(venta.fecha).toLocaleString()}
-          </p>
+          <small>{new Date(venta.fecha).toLocaleString()}</small>
         </div>
 
-        <div className="mb-4">
-          <div className="d-flex justify-content-between align-items-center border p-3 rounded">
-            <span className="fw-semibold">💰 Total:</span>
-            <span className="fs-4 text-success fw-bold">${venta.total.toFixed(2)}</span>
+        <div className="card-body">
+          <div className="mb-4 p-3 bg-light rounded d-flex justify-content-between align-items-center border">
+            <span className="fw-semibold fs-5">💰 Total:</span>
+            <span className="fs-3 text-success fw-bold">${venta.total.toFixed(2)}</span>
           </div>
+
+          <h5 className="text-secondary mb-3">📦 Productos vendidos:</h5>
+          <table className="table table-hover table-bordered align-middle">
+            <thead className="table-light">
+              <tr>
+                <th>Producto</th>
+                <th className="text-center">Cantidad</th>
+                <th className="text-end">Precio Unitario</th>
+                <th className="text-end">Descuento</th>
+                <th className="text-end">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              {venta.productos.map((p, i) => {
+                const subtotal = (p.precio_unitario * p.cantidad) - p.descuento;
+                return (
+                  <tr key={i} className="align-middle">
+                    <td>{p.nombre}</td>
+                    <td className="text-center">{p.cantidad} {p.unidad}</td>
+                    <td className="text-end">${p.precio_unitario.toFixed(2)}</td>
+                    <td className="text-end text-danger">-${p.descuento.toFixed(2)}</td>
+                    <td className="text-end fw-semibold">${subtotal.toFixed(2)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+
+          {venta.comentario && (
+            <div className="alert alert-info mt-4" style={{ fontStyle: 'italic' }}>
+              <strong>Comentario:</strong> {venta.comentario}
+            </div>
+          )}
         </div>
 
-        <h5 className="text-secondary mb-3">📦 Productos vendidos:</h5>
-        <ul className="list-group mb-4">
-          {venta.productos.map((p, i) => (
-            <li
-              key={i}
-              className="list-group-item d-flex justify-content-between align-items-center"
-            >
-              <div>
-                <div className="fw-semibold">{p.nombre}</div>
-                <small className="text-muted">Cantidad: {p.cantidad}</small>
-              </div>
-              <span className="badge bg-primary fs-6">${p.precio_unitario.toFixed(2)}</span>
-            </li>
-          ))}
-        </ul>
-
-        <div className="d-flex justify-content-between">
-          <Link to="/ventas/historial" className="btn btn-outline-secondary">
+        <div className="card-footer d-flex flex-wrap justify-content-between gap-2">
+          <Link to="/ventas/historial" className="btn btn-outline-secondary flex-grow-1 flex-md-grow-0">
             ← Volver al Historial
           </Link>
-          <button className="btn btn-outline-primary" onClick={descargarTicket}>
-  📥 Descargar Ticket
-</button>
 
-          <button className="btn btn-danger" onClick={anularVenta}>
+          <button
+            className="btn btn-outline-primary flex-grow-1 flex-md-grow-0"
+            onClick={descargarTicket}
+          >
+            📥 Descargar Ticket
+          </button>
+
+          {venta.fiado && !venta.pagada && (
+            <button className="btn btn-success flex-grow-1 flex-md-grow-0" onClick={marcarComoPagada}>
+              💵 Marcar como pagada
+            </button>
+          )}
+
+          <button
+            className="btn btn-danger flex-grow-1 flex-md-grow-0"
+            onClick={anularVenta}
+          >
             🗑 Anular Venta
           </button>
         </div>

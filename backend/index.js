@@ -10,11 +10,19 @@ const resumenRoutes = require('./routes/resumen');
 const app = express();
 
 // Habilitar CORS para permitir conexiones desde cualquier frontend
+
+
 app.use(cors({
-  origin: 'https://stock-app-cruzguillermos-projects.vercel.app',
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  origin: [
+    'http://localhost:5173', // frontend local
+    'https://stock-app-cruzguillermos-projects.vercel.app', // vercel
+    'https://stock-app-n514.onrender.com' // si accedés desde render directamente
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'], // incluye PATCH
   credentials: true
 }));
+
+
 
 app.use(express.json());
 

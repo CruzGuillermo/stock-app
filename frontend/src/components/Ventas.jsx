@@ -113,6 +113,23 @@ const styles = {
     borderRadius: 6,
     cursor: 'pointer',
   },
+  checkboxContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    marginBottom: 20,
+    gap: 8,
+  },
+  textarea: {
+    width: '100%',
+    minHeight: 60,
+    padding: '10px 14px',
+    borderRadius: 8,
+    border: '1.8px solid #bdc3c7',
+    fontSize: '1rem',
+    resize: 'vertical',
+    transition: 'border-color 0.25s ease',
+    outline: 'none',
+  },
 };
 
 export default function Ventas() {
@@ -122,14 +139,17 @@ export default function Ventas() {
     cantidad: 1,
     tipo_oferta: 'litro',
     descuento: 0,
-    tipo_descuento: 'porcentaje', // 'porcentaje' o 'monto'
+    tipo_descuento: 'porcentaje',
   });
   const [busqueda, setBusqueda] = useState('');
   const [productoEncontrado, setProductoEncontrado] = useState(null);
   const [loading, setLoading] = useState(false);
   const [inputFocus, setInputFocus] = useState({});
   const [placeholderProd, setPlaceholderProd] = useState('Ej: Coca Cola 1.5L');
-  const [carrito, setCarrito] = useState([]); // <-- nuevo estado carrito
+  const [carrito, setCarrito] = useState([]);
+  // NUEVO estados fiado y comentario
+  const [fiado, setFiado] = useState(false);
+  const [comentario, setComentario] = useState('');
 
   useEffect(() => {
     cargarProductos();
@@ -150,8 +170,6 @@ export default function Ventas() {
       MySwal.fire('Error', 'No se pudieron cargar los productos', 'error');
     }
   };
-
-  // --- Funciones auxiliares existentes (manejarCambio, manejarBusqueda, calcularPrecio, calcularTotales) ---
 
   const manejarCambio = (e) => {
     const { name, value } = e.target;
@@ -264,7 +282,6 @@ export default function Ventas() {
 
   const { total, totalConDescuento } = calcularTotales();
 
-  // --- NUEVO: función para añadir producto actual al carrito ---
   const agregarAlCarrito = () => {
     if (!productoEncontrado) {
       return MySwal.fire('Error', 'Seleccioná un producto válido', 'error');
@@ -298,7 +315,6 @@ export default function Ventas() {
 
     const cantidad_real = cantidadNum * factor;
 
-    // Crear objeto para carrito
     const item = {
       producto_id: productoEncontrado.id,
       nombre: productoEncontrado.nombre,
@@ -314,7 +330,6 @@ export default function Ventas() {
 
     setCarrito((prev) => [...prev, item]);
 
-    // Limpiar inputs para nuevo producto
     setVenta({
       producto_id: '',
       cantidad: 1,
@@ -326,17 +341,19 @@ export default function Ventas() {
     setProductoEncontrado(null);
   };
 
-  // --- NUEVO: eliminar producto del carrito ---
   const eliminarDelCarrito = (index) => {
     setCarrito((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // --- manejar envío total de la venta con múltiples productos ---
   const manejarSubmit = async (e) => {
     e.preventDefault();
 
     if (carrito.length === 0) {
       return MySwal.fire('Error', 'El carrito está vacío', 'error');
+    }
+
+    if (fiado && comentario.trim() === '') {
+      return MySwal.fire('Error', 'Debe ingresar un comentario para la venta fiada.', 'warning');
     }
 
     const totalVenta = carrito.reduce((acc, item) => acc + item.subtotal, 0);
@@ -352,6 +369,8 @@ export default function Ventas() {
         tipo_descuento: item.tipo_descuento,
       })),
       total: totalVenta,
+      fiado,
+      comentario: comentario.trim() || null,
     };
 
     try {
@@ -371,14 +390,17 @@ export default function Ventas() {
           .join('') +
           `<p><strong>Total general a pagar:</strong> <span style="color:#27ae60; font-weight:bold;">$${totalVenta.toFixed(
             2
-          )}</span></p>`,
+          )}</span></p>` +
+          (fiado ? `<p><strong>Venta fiada:</strong> Sí</p><p><strong>Comentario:</strong> ${comentario}</p>` : ''),
         background: '#f0fff4',
         confirmButtonColor: '#27ae60',
-        timer: 5000,
+        timer: 6000,
         timerProgressBar: true,
       });
 
       setCarrito([]);
+      setFiado(false);
+      setComentario('');
     } catch (err) {
       console.error(err);
       MySwal.fire('Error', 'Ocurrió un error registrando la venta', 'error');
@@ -390,7 +412,6 @@ export default function Ventas() {
   const handleFocus = (field) => setInputFocus({ [field]: true });
   const handleBlur = () => setInputFocus({});
 
-  // Total general del carrito para mostrar en interfaz
   const totalCarrito = carrito.reduce((acc, item) => acc + item.subtotal, 0);
 
   return (
@@ -501,6 +522,42 @@ export default function Ventas() {
             />
           </div>
         </div>
+
+        {/* NUEVO: Checkbox fiado y textarea comentario */}
+        <div style={styles.checkboxContainer}>
+          <input
+            type="checkbox"
+            id="fiado"
+            checked={fiado}
+            onChange={(e) => setFiado(e.target.checked)}
+            disabled={loading}
+          />
+          <label htmlFor="fiado" style={{ userSelect: 'none' }}>
+            ¿Venta fiada?
+          </label>
+        </div>
+
+        {fiado && (
+          <>
+            <label style={styles.label} htmlFor="comentario">
+              Comentario (obligatorio para fiado)
+            </label>
+            <textarea
+              id="comentario"
+              name="comentario"
+              style={{
+                ...styles.textarea,
+                ...(inputFocus['comentario'] ? styles.inputFocus : {}),
+              }}
+              value={comentario}
+              onChange={(e) => setComentario(e.target.value)}
+              onFocus={() => handleFocus('comentario')}
+              onBlur={handleBlur}
+              disabled={loading}
+              required={fiado}
+            />
+          </>
+        )}
 
         <div style={styles.totalBox}>
           Total producto: <span>${total.toFixed(2)}</span>

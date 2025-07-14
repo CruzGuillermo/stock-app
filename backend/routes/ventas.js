@@ -63,13 +63,17 @@ router.get('/', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-  const { productos, total } = req.body;
+  const { productos, total, fiado, comentario } = req.body;
 
   if (!Array.isArray(productos) || productos.length === 0)
     return res.status(400).json({ error: 'Debe enviar productos para registrar la venta.' });
 
   if (typeof total !== 'number' || isNaN(total))
     return res.status(400).json({ error: 'Total inválido' });
+
+  if (fiado === true && (!comentario || comentario.trim() === '')) {
+    return res.status(400).json({ error: 'Debe ingresar un comentario para la venta fiada.' });
+  }
 
   for (const prod of productos) {
     if (typeof prod.cantidad !== 'number' || isNaN(prod.cantidad) || prod.cantidad <= 0) {
@@ -93,14 +97,17 @@ router.post('/', async (req, res) => {
     await db.query('BEGIN');
 
     const ventaResult = await db.query(
-      `INSERT INTO ventas (fecha, total) VALUES ($1, $2) RETURNING id`,
-      [fecha, total]
+      `INSERT INTO ventas (fecha, total, fiado, comentario, pagada)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING id`,
+      [fecha, total, !!fiado, comentario || null, !fiado]
     );
 
     const ventaId = ventaResult.rows[0].id;
 
     for (const prod of productos) {
       const { producto_id, cantidad, precio_unitario, unidad, tipo_oferta, descuento } = prod;
+
       await db.query(
         `INSERT INTO detalle_ventas (venta_id, producto_id, cantidad, precio_unitario, unidad, tipo_oferta, descuento)
          VALUES ($1, $2, $3, $4, $5, $6, $7)`,
@@ -124,10 +131,13 @@ router.post('/', async (req, res) => {
   }
 });
 
+
+// GET /ventas/historial - incluir fiada, comentario y pagada
 router.get('/historial', async (req, res) => {
   try {
     const sql = `
       SELECT v.id as venta_id, v.fecha, v.total::float8 AS total,
+             v.fiado, v.comentario, v.pagada,
              p.nombre as producto, dv.cantidad, dv.precio_unitario, dv.unidad, dv.descuento
       FROM ventas v
       JOIN detalle_ventas dv ON v.id = dv.venta_id
@@ -143,6 +153,9 @@ router.get('/historial', async (req, res) => {
           id: row.venta_id,
           fecha: row.fecha,
           total: row.total,
+          fiado: row.fiado,
+          comentario: row.comentario,
+          pagada: row.pagada,
           productos: [],
         };
       }
@@ -163,32 +176,57 @@ router.get('/historial', async (req, res) => {
   }
 });
 
+// PATCH /ventas/:id/pagar - marcar venta como pagada
+router.patch('/:id/pagar', async (req, res) => {
+  const ventaId = req.params.id;
+
+  try {
+    const result = await db.query(
+      'UPDATE ventas SET pagada = TRUE WHERE id = $1 RETURNING id, pagada',
+      [ventaId]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Venta no encontrada' });
+    }
+
+    res.json({ mensaje: 'Venta marcada como pagada', venta: result.rows[0] });
+  } catch (error) {
+    console.error('Error marcando venta como pagada:', error);
+    res.status(500).json({ error: 'Error al actualizar venta' });
+  }
+});
+
 router.get('/detalle/:id', async (req, res) => {
   try {
     const ventaId = req.params.id;
     const sql = `
-      SELECT v.id as venta_id, v.fecha, v.total::float8 AS total,
-             p.nombre as producto, dv.cantidad, dv.precio_unitario, dv.unidad, dv.descuento
-      FROM ventas v
-      JOIN detalle_ventas dv ON v.id = dv.venta_id
-      JOIN productos p ON p.id = dv.producto_id
-      WHERE v.id = $1
-    `;
+  SELECT v.id as venta_id, v.fecha, v.total::float8 AS total,
+         v.fiado, v.pagada, v.comentario,
+         p.nombre as producto, dv.cantidad, dv.precio_unitario, dv.unidad, dv.descuento
+  FROM ventas v
+  JOIN detalle_ventas dv ON v.id = dv.venta_id
+  JOIN productos p ON p.id = dv.producto_id
+  WHERE v.id = $1
+`;
 
     const result = await db.query(sql, [ventaId]);
     if (result.rowCount === 0) return res.status(404).json({ error: 'Venta no encontrada' });
 
-    const detalle = {
-      id: result.rows[0].venta_id,
-      fecha: result.rows[0].fecha,
-      total: result.rows[0].total,
-      productos: result.rows.map((r) => ({
-        nombre: r.producto,
-        cantidad: r.cantidad,
-        unidad: r.unidad,
-        precio_unitario: r.precio_unitario,
-        descuento: r.descuento || 0,
-      })),
+   const detalle = {
+  id: result.rows[0].venta_id,
+  fecha: result.rows[0].fecha,
+  total: result.rows[0].total,
+  fiado: result.rows[0].fiado,
+  pagada: result.rows[0].pagada,
+  comentario: result.rows[0].comentario,
+  productos: result.rows.map((r) => ({
+    nombre: r.producto,
+    cantidad: r.cantidad,
+    unidad: r.unidad,
+    precio_unitario: r.precio_unitario,
+    descuento: r.descuento || 0,
+  })),
     };
 
     res.json(detalle);
@@ -197,6 +235,7 @@ router.get('/detalle/:id', async (req, res) => {
     res.status(500).json({ error: 'Error al consultar detalle de venta' });
   }
 });
+
 
 router.delete('/:id', async (req, res) => {
   const ventaId = req.params.id;

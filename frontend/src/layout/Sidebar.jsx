@@ -15,17 +15,18 @@ const Sidebar = ({ isOpen, onClose }) => {
         <hr />
         <ul className="nav flex-column">
           {[
-            { to: '/', label: '🏠 Inicio' },
-            { to: '/productos', label: '📦 Productos' },
-            { to: '/stock', label: '📊 Stock' },
-            { to: '/ofertas', label: '🎉 Ofertas' },
-            { to: '/ventas', label: '💸 Ventas' },
-            { to: '/vender-oferta', label: '🛍️ Vender Oferta' },
-            { to: '/ventas/historial', label: '🕒 Historial Ventas' },
-            { to: '/ingresos-stock', label: '➕ Ingresos' },
-            { to: '/ingresos-stock/historial', label: '📋 Historial Ingreso' },
-            { to: '/resumen', label: '📈 Resumen' },
-          ].map(({ to, label }) => (
+  { to: '/', label: '🏠 Inicio' },
+  { to: '/productos', label: '📦 Productos' },
+  { to: '/stock', label: '📊 Stock' },
+  { to: '/ofertas', label: '🎉 Ofertas' },
+  { to: '/ventas', label: '💸 Ventas' },
+  { to: '/vender-oferta', label: '🛍️ Vender Oferta' },
+  { to: '/ventas/historial', label: '🕒 Historial Ventas' },
+  { to: '/ventas/fiados', label: '📄 Ventas Fiadas' }, // 🔥 NUEVO
+  { to: '/ingresos-stock', label: '➕ Ingresos' },
+  { to: '/ingresos-stock/historial', label: '📋 Historial Ingreso' },
+  { to: '/resumen', label: '📈 Resumen' },
+].map(({ to, label }) => (
             <li className="nav-item" key={to}>
               <NavLink
                 to={to}

@@ -5,16 +5,15 @@ import App from './App.jsx';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import axios from 'axios';
 
-const isElectron = window?.process?.type === 'renderer';
+// Detectar si estamos en localhost para desarrollo
 const isLocalhost =
   window.location.hostname === 'localhost' ||
   window.location.hostname === '127.0.0.1';
 
-const baseURL = isElectron
-  ? 'http://127.0.0.1:3001'
-  : isLocalhost
-  ? 'http://localhost:3001'
-  : import.meta.env.VITE_API_URL || 'http://192.168.100.44:3001';
+// Definir baseURL según entorno
+const baseURL = isLocalhost
+  ? 'http://localhost:3001/api' // Backend local en desarrollo
+  : import.meta.env.VITE_API_URL || 'https://stock-app-n514.onrender.com/api'; // Producción
 
 axios.defaults.baseURL = baseURL;
 axios.defaults.headers.common['Content-Type'] = 'application/json';
