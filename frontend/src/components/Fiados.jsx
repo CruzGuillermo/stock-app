@@ -33,54 +33,47 @@ export default function Fiados() {
 
   return (
     <div className="container mt-4">
-      <h2 className="mb-4 fw-bold text-primary">📄 Ventas Fiadas</h2>
+      <h2 className="mb-4 fw-bold text-primary text-center">📄 Ventas Fiadas</h2>
 
       {ventasFiadas.length === 0 ? (
         <div className="alert alert-info text-center">No hay ventas fiadas registradas.</div>
       ) : (
-        <div className="table-responsive">
-          <table className="table table-hover align-middle">
-            <thead className="table-light">
-              <tr>
-                <th>ID</th>
-                <th>Fecha</th>
-                <th>Total</th>
-                <th>Comentario</th>
-                <th>Pagada</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {ventasFiadas.map((venta) => (
-                <tr key={venta.id}>
-                  <td>{venta.id}</td>
-                  <td>{new Date(venta.fecha).toLocaleString()}</td>
-                  <td>${venta.total.toFixed(2)}</td>
-                  <td>{venta.comentario || '-'}</td>
-                  <td>
-                    {venta.pagada ? (
-                      <span className="badge bg-success">Pagada</span>
-                    ) : (
-                      <span className="badge bg-warning text-dark">Pendiente</span>
-                    )}
-                  </td>
-                  <td>
-                    <Link to={`/ventas/detalle/${venta.id}`} className="btn btn-sm btn-outline-info me-2">
-                      🔍 Ver
-                    </Link>
-                    {!venta.pagada && (
-                      <button
-                        className="btn btn-sm btn-success"
-                        onClick={() => marcarComoPagada(venta.id)}
-                      >
-                        💵 Marcar pagada
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="d-flex flex-column gap-3">
+          {ventasFiadas.map((venta) => (
+            <div key={venta.id} className="card shadow-sm">
+              <div className="card-body">
+                <h5 className="card-title mb-2">🧾 Venta #{venta.id}</h5>
+                <p className="card-text mb-1"><strong>Fecha:</strong> {new Date(venta.fecha).toLocaleString()}</p>
+                <p className="card-text mb-1"><strong>Total:</strong> ${venta.total.toFixed(2)}</p>
+                <p className="card-text mb-1"><strong>Comentario:</strong> {venta.comentario || '-'}</p>
+                <p className="card-text mb-2">
+                  <strong>Estado:</strong>{' '}
+                  {venta.pagada ? (
+                    <span className="badge bg-success">Pagada</span>
+                  ) : (
+                    <span className="badge bg-warning text-dark">Pendiente</span>
+                  )}
+                </p>
+
+                <div className="d-flex flex-column flex-sm-row gap-2">
+                  <Link
+                    to={`/ventas/detalle/${venta.id}`}
+                    className="btn btn-outline-info w-100"
+                  >
+                    🔍 Ver detalle
+                  </Link>
+                  {!venta.pagada && (
+                    <button
+                      className="btn btn-success w-100"
+                      onClick={() => marcarComoPagada(venta.id)}
+                    >
+                      💵 Marcar como pagada
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

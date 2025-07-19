@@ -5,17 +5,21 @@ import TopProductos from './TopProductos';
 export default function Stock() {
   const [productos, setProductos] = useState([]);
   const [filtro, setFiltro] = useState('');
+  const [cargando, setCargando] = useState(true); // Estado nuevo
 
   useEffect(() => {
     cargarStock();
   }, []);
 
   const cargarStock = async () => {
+    setCargando(true); // inicio carga
     try {
       const res = await axios.get('/productos/stock');
       setProductos(res.data);
     } catch (error) {
       console.error('Error cargando stock:', error);
+    } finally {
+      setCargando(false); // fin carga
     }
   };
 
@@ -63,61 +67,71 @@ export default function Stock() {
         </div>
       </div>
 
-      {/* Tabla responsive con columnas ocultas en móvil */}
-      <div className="table-responsive shadow-sm rounded">
-        <table className="table table-hover align-middle bg-white">
-          <thead className="table-primary">
-            <tr className="text-center">
-              <th>Producto</th>
-              <th className="d-none d-sm-table-cell">Categoría</th>
-              <th>Stock</th>
-              <th className="d-none d-sm-table-cell">Unidad</th>
-            </tr>
-          </thead>
-          <tbody>
-            {productosFiltrados.length === 0 ? (
-              <tr>
-                <td colSpan="4" className="text-center text-muted py-4">
-                  No se encontraron productos.
-                </td>
-              </tr>
-            ) : (
-              productosFiltrados.map((p) => {
-                const stockReal = Number(p.stock);
-                const stockMin = Number(p.stock_minimo);
-                const stockBajo = stockReal <= stockMin;
-
-                return (
-                  <tr
-                    key={p.id}
-                    className="text-center"
-                    title={stockBajo ? 'Stock bajo ⚠️' : ''}
-                  >
-                    <td className="fw-semibold">{p.nombre}</td>
-                    <td className="d-none d-sm-table-cell">{p.categoria}</td>
-                    <td>
-                      <span
-                        className={`badge fs-6 px-3 py-2 ${
-                          stockBajo ? 'bg-danger' : 'bg-success'
-                        }`}
-                        style={{ fontWeight: '700' }}
-                      >
-                        {stockReal} {mostrarUnidad(p.unidad, true)}
-                      </span>
+      {cargando ? (
+        <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '150px' }}>
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Cargando...</span>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Tabla responsive con columnas ocultas en móvil */}
+          <div className="table-responsive shadow-sm rounded">
+            <table className="table table-hover align-middle bg-white">
+              <thead className="table-primary">
+                <tr className="text-center">
+                  <th>Producto</th>
+                  <th className="d-none d-sm-table-cell">Categoría</th>
+                  <th>Stock</th>
+                  <th className="d-none d-sm-table-cell">Unidad</th>
+                </tr>
+              </thead>
+              <tbody>
+                {productosFiltrados.length === 0 ? (
+                  <tr>
+                    <td colSpan="4" className="text-center text-muted py-4">
+                      No se encontraron productos.
                     </td>
-                    <td className="d-none d-sm-table-cell">{mostrarUnidad(p.unidad)}</td>
                   </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
-      </div>
+                ) : (
+                  productosFiltrados.map((p) => {
+                    const stockReal = Number(p.stock);
+                    const stockMin = Number(p.stock_minimo);
+                    const stockBajo = stockReal <= stockMin;
 
-      {/* Componente extra opcional */}
-      <div className="mt-5">
-        <TopProductos />
-      </div>
+                    return (
+                      <tr
+                        key={p.id}
+                        className="text-center"
+                        title={stockBajo ? 'Stock bajo ⚠️' : ''}
+                      >
+                        <td className="fw-semibold">{p.nombre}</td>
+                        <td className="d-none d-sm-table-cell">{p.categoria}</td>
+                        <td>
+                          <span
+                            className={`badge fs-6 px-3 py-2 ${
+                              stockBajo ? 'bg-danger' : 'bg-success'
+                            }`}
+                            style={{ fontWeight: '700' }}
+                          >
+                            {stockReal} {mostrarUnidad(p.unidad, true)}
+                          </span>
+                        </td>
+                        <td className="d-none d-sm-table-cell">{mostrarUnidad(p.unidad)}</td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Componente extra opcional */}
+          <div className="mt-5">
+            <TopProductos />
+          </div>
+        </>
+      )}
     </div>
   );
 }

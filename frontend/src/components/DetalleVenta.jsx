@@ -13,21 +13,6 @@ export default function DetalleVenta() {
     if (id) cargarDetalle();
   }, [id]);
 
-  const descargarTicket = async () => {
-    try {
-      const response = await axios.get(`/ventas/${id}/ticket`, { responseType: 'blob' });
-      const blob = new Blob([response.data], { type: 'application/pdf' });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `ticket-venta-${id}.pdf`;
-      link.click();
-      window.URL.revokeObjectURL(url);
-    } catch {
-      Swal.fire('Error', 'No se pudo descargar el ticket.', 'error');
-    }
-  };
-
   const cargarDetalle = async () => {
     try {
       const res = await axios.get(`/ventas/detalle/${id}`);
@@ -44,6 +29,21 @@ export default function DetalleVenta() {
       setVenta(venta);
     } catch {
       setError('Error cargando detalle de venta');
+    }
+  };
+
+  const descargarTicket = async () => {
+    try {
+      const response = await axios.get(`/ventas/${id}/ticket`, { responseType: 'blob' });
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `ticket-venta-${id}.pdf`;
+      link.click();
+      window.URL.revokeObjectURL(url);
+    } catch {
+      Swal.fire('Error', 'No se pudo descargar el ticket.', 'error');
     }
   };
 
@@ -79,14 +79,26 @@ export default function DetalleVenta() {
     }
   };
 
-  if (error)
+  const formatearMoneda = (valor) => `$${valor.toFixed(2)}`;
+
+  const calcularSubtotal = (producto) => {
+  // Si necesitas lógica especial para ciertos productos, hazlo más explícito
+  const esOfertaEspecial = producto.cantidad === '3';
+  return esOfertaEspecial
+    ? producto.precio_unitario - producto.descuento
+    : (producto.precio_unitario * producto.cantidad) - producto.descuento;
+};
+
+
+  if (error) {
     return (
       <div className="container mt-4">
-        <div className="alert alert-danger shadow-sm text-center fw-semibold">{error}</div>
+        <div className="alert alert-danger text-center fw-semibold shadow-sm">{error}</div>
       </div>
     );
+  }
 
-  if (!venta)
+  if (!venta) {
     return (
       <div className="container mt-5 d-flex justify-content-center align-items-center" style={{ height: '200px' }}>
         <div className="spinner-border text-primary" role="status">
@@ -94,79 +106,58 @@ export default function DetalleVenta() {
         </div>
       </div>
     );
+  }
 
   return (
-    <div className="container mt-5" style={{ maxWidth: '720px' }}>
+    <div className="container my-4 px-2">
       <div className="card shadow-sm border-0">
         <div className="card-header bg-primary text-white text-center">
-          <h2 className="fw-bold mb-0">
-            🧾 Detalle de Venta <span className="text-light">#{venta.id}</span>
-          </h2>
+          <h5 className="fw-bold mb-1">🧾 Venta #{venta.id}</h5>
           <small>{new Date(venta.fecha).toLocaleString()}</small>
         </div>
 
         <div className="card-body">
-          <div className="mb-4 p-3 bg-light rounded d-flex justify-content-between align-items-center border">
-            <span className="fw-semibold fs-5">💰 Total:</span>
-            <span className="fs-3 text-success fw-bold">${venta.total.toFixed(2)}</span>
+          <div className="mb-3 p-3 bg-light rounded border text-center">
+            <span className="d-block fw-semibold text-muted">Total</span>
+            <span className="fs-3 text-success fw-bold">{formatearMoneda(venta.total)}</span>
           </div>
 
-          <h5 className="text-secondary mb-3">📦 Productos vendidos:</h5>
-          <table className="table table-hover table-bordered align-middle">
-            <thead className="table-light">
-              <tr>
-                <th>Producto</th>
-                <th className="text-center">Cantidad</th>
-                <th className="text-end">Precio Unitario</th>
-                <th className="text-end">Descuento</th>
-                <th className="text-end">Subtotal</th>
-              </tr>
-            </thead>
-            <tbody>
-              {venta.productos.map((p, i) => {
-                const subtotal = (p.precio_unitario * p.cantidad) - p.descuento;
-                return (
-                  <tr key={i} className="align-middle">
-                    <td>{p.nombre}</td>
-                    <td className="text-center">{p.cantidad} {p.unidad}</td>
-                    <td className="text-end">${p.precio_unitario.toFixed(2)}</td>
-                    <td className="text-end text-danger">-${p.descuento.toFixed(2)}</td>
-                    <td className="text-end fw-semibold">${subtotal.toFixed(2)}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          <h6 className="text-secondary mb-3">📦 Productos vendidos:</h6>
+
+          {Array.isArray(venta.productos) && venta.productos.map((p, i) => (
+            <div key={i} className="border rounded p-3 mb-3 shadow-sm bg-white">
+              <h6 className="fw-bold mb-2">{p.nombre}</h6>
+              <div className="mb-1"><strong>Cantidad:</strong> {p.cantidad} {p.unidad}</div>
+              <div className="mb-1"><strong>Precio Unitario:</strong> {formatearMoneda(p.precio_unitario)}</div>
+              <div className="mb-1 text-danger"><strong>Descuento:</strong> -{formatearMoneda(p.descuento)}</div>
+              <div className="fw-semibold mt-2 text-end">
+              </div>
+            </div>
+          ))}
 
           {venta.comentario && (
-            <div className="alert alert-info mt-4" style={{ fontStyle: 'italic' }}>
+            <div className="alert alert-info mt-4 fst-italic">
               <strong>Comentario:</strong> {venta.comentario}
             </div>
           )}
         </div>
 
-        <div className="card-footer d-flex flex-wrap justify-content-between gap-2">
-          <Link to="/ventas/historial" className="btn btn-outline-secondary flex-grow-1 flex-md-grow-0">
+        <div className="card-footer d-flex flex-column gap-2">
+          <Link to="/ventas/historial" className="btn btn-outline-secondary w-100">
             ← Volver al Historial
           </Link>
 
-          <button
-            className="btn btn-outline-primary flex-grow-1 flex-md-grow-0"
-            onClick={descargarTicket}
-          >
+          <button className="btn btn-outline-primary w-100" onClick={descargarTicket}>
             📥 Descargar Ticket
           </button>
 
           {venta.fiado && !venta.pagada && (
-            <button className="btn btn-success flex-grow-1 flex-md-grow-0" onClick={marcarComoPagada}>
+            <button className="btn btn-success w-100" onClick={marcarComoPagada}>
               💵 Marcar como pagada
             </button>
           )}
 
-          <button
-            className="btn btn-danger flex-grow-1 flex-md-grow-0"
-            onClick={anularVenta}
-          >
+          <button className="btn btn-danger w-100" onClick={anularVenta}>
             🗑 Anular Venta
           </button>
         </div>

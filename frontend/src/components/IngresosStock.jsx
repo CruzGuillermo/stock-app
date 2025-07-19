@@ -3,6 +3,7 @@ import axios from 'axios';
 
 export default function IngresosStock() {
   const [productos, setProductos] = useState([]);
+  const [cargando, setCargando] = useState(true);
   const [busqueda, setBusqueda] = useState('');
   const [form, setForm] = useState({
     producto_id: '',
@@ -25,7 +26,8 @@ export default function IngresosStock() {
       setProductos(res.data);
     } catch {
       setError('Error cargando productos');
-      setMensaje(null);
+    } finally {
+      setCargando(false);
     }
   };
 
@@ -35,9 +37,7 @@ export default function IngresosStock() {
       ...prev,
       [name]:
         name === 'cantidad' || name === 'precio_unitario'
-          ? value === ''
-            ? ''
-            : Number(value)
+          ? value === '' ? '' : Number(value)
           : value,
     }));
   };
@@ -81,156 +81,155 @@ export default function IngresosStock() {
   );
 
   return (
-    <div className="container mt-5" style={{ maxWidth: '600px' }}>
+    <div className="container mt-4 px-2">
       <h2 className="mb-4 text-center text-primary fw-bold">📦 Ingreso de Stock</h2>
 
-      {mensaje && (
-        <div className="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
-          {mensaje}
-          <button type="button" className="btn-close" onClick={() => setMensaje(null)} />
-        </div>
-      )}
-      {error && (
-        <div className="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
-          {error}
-          <button type="button" className="btn-close" onClick={() => setError(null)} />
+      {/* Loading spinner */}
+      {cargando && (
+        <div className="d-flex justify-content-center align-items-center my-5">
+          <div className="spinner-border text-primary" role="status" />
         </div>
       )}
 
-      <form onSubmit={manejarSubmit} noValidate className="card p-4 shadow-sm border-0">
-        {/* Buscador de productos */}
-        <div className="mb-3">
-          <label className="form-label fw-semibold">🔍 Buscar Producto</label>
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Escribe para filtrar productos..."
-            value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
-          />
-        </div>
+      {!cargando && (
+        <>
+          {mensaje && (
+            <div className="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+              {mensaje}
+              <button type="button" className="btn-close" onClick={() => setMensaje(null)} />
+            </div>
+          )}
+          {error && (
+            <div className="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+              {error}
+              <button type="button" className="btn-close" onClick={() => setError(null)} />
+            </div>
+          )}
 
-        {/* Selector de producto */}
-        <div className="mb-3">
-          <label htmlFor="producto_id" className="form-label fw-semibold">
-            Producto <span className="text-danger">*</span>
-          </label>
-          <select
-            id="producto_id"
-            name="producto_id"
-            className="form-select"
-            value={form.producto_id}
-            onChange={manejarCambio}
-            required
-          >
-            <option value="">Selecciona un producto...</option>
-            {productosFiltrados.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.nombre}
-              </option>
-            ))}
-          </select>
-        </div>
+          <form onSubmit={manejarSubmit} noValidate className="card p-4 shadow-sm border-0">
+            {/* Selector de producto */}
+            <div className="mb-3">
+              <label htmlFor="producto_id" className="form-label fw-semibold">
+                Producto <span className="text-danger">*</span>
+              </label>
+              <select
+                id="producto_id"
+                name="producto_id"
+                className="form-select"
+                value={form.producto_id}
+                onChange={manejarCambio}
+                required
+              >
+                <option value="">Selecciona un producto...</option>
+                {productosFiltrados.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.nombre}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-        {/* Unidad y cantidad */}
-        <div className="row mb-3">
-          <div className="col-md-6">
-            <label htmlFor="unidad" className="form-label fw-semibold">
-              Unidad <span className="text-danger">*</span>
-            </label>
-            <select
-              id="unidad"
-              name="unidad"
-              className="form-select"
-              value={form.unidad}
-              onChange={manejarCambio}
-              required
-            >
-              <option value="medio_litro">Medio Litro</option>
-              <option value="litro">Litro</option>
-              <option value="3litros">3 Litros</option>
-              <option value="unidad">Unidad</option>
-              <option value="kilogramo">Kilogramo</option>
-              <option value="gramo">Gramo</option>
-            </select>
-          </div>
-          <div className="col-md-6">
-            <label htmlFor="cantidad" className="form-label fw-semibold">
-              Cantidad <span className="text-danger">*</span>
-            </label>
-            <input
-              type="number"
-              id="cantidad"
-              name="cantidad"
-              min="0.01"
-              step="any"
-              className="form-control"
-              value={form.cantidad}
-              onChange={manejarCambio}
-              required
-            />
-          </div>
-        </div>
+            {/* Unidad y cantidad */}
+            <div className="row row-cols-1 row-cols-sm-2 g-3 mb-3">
+              <div className="col">
+                <label htmlFor="unidad" className="form-label fw-semibold">
+                  Unidad <span className="text-danger">*</span>
+                </label>
+                <select
+                  id="unidad"
+                  name="unidad"
+                  className="form-select"
+                  value={form.unidad}
+                  onChange={manejarCambio}
+                  required
+                >
+                  <option value="medio_litro">Medio Litro</option>
+                  <option value="litro">Litro</option>
+                  <option value="3litros">3 Litros</option>
+                  <option value="unidad">Unidad</option>
+                  <option value="kilogramo">Kilogramo</option>
+                  <option value="gramo">Gramo</option>
+                </select>
+              </div>
+              <div className="col">
+                <label htmlFor="cantidad" className="form-label fw-semibold">
+                  Cantidad <span className="text-danger">*</span>
+                </label>
+                <input
+                  type="number"
+                  id="cantidad"
+                  name="cantidad"
+                  min="0.01"
+                  step="any"
+                  className="form-control"
+                  value={form.cantidad}
+                  onChange={manejarCambio}
+                  required
+                />
+              </div>
+            </div>
 
-        {/* Precio y fecha */}
-        <div className="row mb-3">
-          <div className="col-md-6">
-            <label htmlFor="precio_unitario" className="form-label fw-semibold">
-              Precio Unitario <span className="text-danger">*</span>
-            </label>
-            <input
-              type="number"
-              id="precio_unitario"
-              name="precio_unitario"
-              min="0"
-              step="0.01"
-              placeholder="Ej: 123.45"
-              className="form-control"
-              value={form.precio_unitario}
-              onChange={manejarCambio}
-              required
-            />
-          </div>
-          <div className="col-md-6">
-            <label htmlFor="fecha" className="form-label fw-semibold">
-              Fecha <span className="text-danger">*</span>
-            </label>
-            <input
-              type="date"
-              id="fecha"
-              name="fecha"
-              className="form-control"
-              value={form.fecha}
-              onChange={manejarCambio}
-              required
-            />
-          </div>
-        </div>
+            {/* Precio y fecha */}
+            <div className="row row-cols-1 row-cols-sm-2 g-3 mb-3">
+              <div className="col">
+                <label htmlFor="precio_unitario" className="form-label fw-semibold">
+                  Precio Unitario <span className="text-danger">*</span>
+                </label>
+                <input
+                  type="number"
+                  id="precio_unitario"
+                  name="precio_unitario"
+                  min="0"
+                  step="0.01"
+                  placeholder="Ej: 123.45"
+                  className="form-control"
+                  value={form.precio_unitario}
+                  onChange={manejarCambio}
+                  required
+                />
+              </div>
+              <div className="col">
+                <label htmlFor="fecha" className="form-label fw-semibold">
+                  Fecha <span className="text-danger">*</span>
+                </label>
+                <input
+                  type="date"
+                  id="fecha"
+                  name="fecha"
+                  className="form-control"
+                  value={form.fecha}
+                  onChange={manejarCambio}
+                  required
+                />
+              </div>
+            </div>
 
-        {/* Observaciones */}
-        <div className="mb-4">
-          <label htmlFor="observaciones" className="form-label fw-semibold">Observaciones</label>
-          <textarea
-            id="observaciones"
-            name="observaciones"
-            className="form-control"
-            placeholder="Opcional"
-            value={form.observaciones}
-            onChange={manejarCambio}
-            rows="3"
-          />
-        </div>
+            {/* Observaciones */}
+            <div className="mb-4">
+              <label htmlFor="observaciones" className="form-label fw-semibold">Observaciones</label>
+              <textarea
+                id="observaciones"
+                name="observaciones"
+                className="form-control"
+                placeholder="Opcional"
+                value={form.observaciones}
+                onChange={manejarCambio}
+                rows="3"
+              />
+            </div>
 
-        {/* Botones */}
-        <div className="d-flex justify-content-between">
-          <button type="submit" className="btn btn-primary fw-semibold w-100 me-2">
-            ✅ Registrar Ingreso
-          </button>
-          <button type="button" className="btn btn-outline-secondary fw-semibold" onClick={limpiarFormulario}>
-            Limpiar
-          </button>
-        </div>
-      </form>
+            {/* Botones */}
+            <div className="d-flex flex-column flex-sm-row gap-2">
+              <button type="submit" className="btn btn-primary fw-semibold w-100">
+                ✅ Registrar Ingreso
+              </button>
+              <button type="button" className="btn btn-outline-secondary fw-semibold w-100" onClick={limpiarFormulario}>
+                Limpiar
+              </button>
+            </div>
+          </form>
+        </>
+      )}
     </div>
   );
 }

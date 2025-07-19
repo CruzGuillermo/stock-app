@@ -416,7 +416,7 @@ export default function Ventas() {
 
   return (
     <div style={styles.container}>
-      <h2 style={styles.title}>🛒 Nueva Venta con Descuento (Múltiples productos)</h2>
+      <h2 style={styles.title}>Ventas</h2>
 
       <form onSubmit={manejarSubmit} autoComplete="off" noValidate>
         <label style={styles.label} htmlFor="busqueda">Buscar producto</label>
@@ -474,12 +474,11 @@ export default function Ventas() {
               onChange={manejarCambio}
               disabled={loading}
             >
-              <option value="medio_litro">🥤 Medio litro</option>
-              <option value="litro">💧 Litro</option>
-              <option value="3litros">🧴 Pack 3L</option>
-              <option value="unidad">📦 Unidad</option>
-              <option value="kilogramo">⚖️ Kilo</option>
-              <option value="gramo">⚖️ Gramo</option>
+              <option value="litro"> Litro</option>
+              <option value="3litros"> Oferta x 3L</option>
+              <option value="unidad"> Unidad</option>
+              <option value="kilogramo"> Kilogramo</option>
+              <option value="gramo"> Gramo</option>
             </select>
           </div>
         </div>
@@ -495,14 +494,12 @@ export default function Ventas() {
               onChange={manejarCambio}
               disabled={loading}
             >
-              <option value="porcentaje">Porcentaje (%)</option>
-              <option value="monto">Monto fijo ($)</option>
+              <option value="monto">Monto ($)</option>
             </select>
           </div>
           <div style={styles.half}>
             <label style={styles.label} htmlFor="descuento">Descuento</label>
             <input
-              type="text"
               id="descuento"
               name="descuento"
               placeholder={
@@ -580,7 +577,7 @@ export default function Ventas() {
             ...(loading || !productoEncontrado ? styles.buttonDisabled : {}),
           }}
         >
-          ➕ Añadir al carrito
+          ➕ Añadir 
         </button>
 
         {carrito.length > 0 && (

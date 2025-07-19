@@ -8,7 +8,7 @@ const MySwal = withReactContent(Swal);
 export default function HistorialIngreso() {
   const [historial, setHistorial] = useState([]);
   const [cargando, setCargando] = useState(true);
-  const [editando, setEditando] = useState(null); // ingreso en edición
+  const [editando, setEditando] = useState(null);
 
   useEffect(() => {
     obtenerHistorial();
@@ -74,174 +74,200 @@ export default function HistorialIngreso() {
   };
 
   return (
-    // ... imports y useEffect iguales
-  <div className="container mt-5">
-    <div className="bg-white p-4 rounded shadow-sm">
-      <h2 className="text-center mb-4 text-primary fw-bold">📦 Historial de Ingresos de Stock</h2>
+    <div className="container-fluid mt-4 px-2 px-sm-4">
+      <div className="bg-white p-3 p-md-4 rounded shadow-sm">
+        <h2 className="text-center mb-4 text-primary fw-bold">📦 Historial de Ingresos</h2>
 
-      {cargando ? (
-        <div className="text-center py-4">
-          <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Cargando...</span>
+        {cargando ? (
+          <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '200px' }}>
+            <div className="spinner-border text-primary" role="status">
+              <span className="visually-hidden">Cargando...</span>
+            </div>
           </div>
-        </div>
-      ) : historial.length === 0 ? (
-        <div className="alert alert-info text-center">No hay ingresos registrados aún.</div>
-      ) : (
-        <div className="table-responsive">
-          <table className="table table-hover table-bordered align-middle text-center">
-            <thead className="table-light text-dark">
-              <tr>
-                <th>📅 Fecha</th>
-                <th>🧴 Producto</th>
-                <th>🔢 Cantidad</th>
-                <th>📏 Unidad</th>
-                <th>💲 Precio Unit.</th>
-                <th>💰 Total</th>
-                <th>📝 Observaciones</th>
-                <th>⚙️ Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
+        ) : historial.length === 0 ? (
+          <div className="alert alert-info text-center">No hay ingresos registrados aún.</div>
+        ) : (
+          <>
+            {/* Vista tarjetas en móvil */}
+            <div className="d-block d-md-none">
               {historial.map((ingreso) => {
-                const precioUnitarioNum = parseFloat(ingreso.precio_unitario) || 0;
-                const cantidadNum = parseFloat(ingreso.cantidad) || 0;
-                const total = precioUnitarioNum * cantidadNum;
-
+                const total = ingreso.cantidad * ingreso.precio_unitario;
                 return (
-                  <tr key={ingreso.id}>
-                    <td>{new Date(ingreso.fecha).toLocaleDateString()}</td>
-                    <td className="text-start">{ingreso.producto_nombre}</td>
-                    <td>{cantidadNum}</td>
-                    <td>{ingreso.unidad}</td>
-                    <td>${precioUnitarioNum.toFixed(2)}</td>
-                    <td className="fw-bold text-success">${total.toFixed(2)}</td>
-                    <td>{ingreso.observaciones || '-'}</td>
-                    <td>
-                      <button
-                        className="btn btn-sm btn-outline-warning me-2"
-                        onClick={() => setEditando({ ...ingreso })}
-                        title="Editar"
-                      >
-                        📝
-                      </button>
-                      <button
-                        className="btn btn-sm btn-outline-danger"
-                        onClick={() => eliminarIngreso(ingreso.id)}
-                        title="Eliminar"
-                      >
-                        🗑
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
+                  <div key={ingreso.id} className="card mb-3 shadow-sm">
+                    <div className="card-body">
+                      <h5 className="card-title text-primary">{ingreso.producto_nombre}</h5>
+                      <p className="card-text mb-1"><strong>📅 Fecha:</strong> {new Date(ingreso.fecha).toLocaleDateString()}</p>
+                      <p className="card-text mb-1"><strong>🔢 Cantidad:</strong> {ingreso.cantidad} {ingreso.unidad}</p>
+                      <p className="card-text mb-1"><strong>💲 Precio Unitario:</strong> ${ingreso.precio_unitario.toFixed(2)}</p>
+                      <p className="card-text mb-1"><strong>💰 Total:</strong> ${total.toFixed(2)}</p>
+                      <p className="card-text"><strong>📝 Obs.:</strong> {ingreso.observaciones || '-'}</p>
 
-      {/* Modal Edición */}
-      {editando && (
-        <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: '#00000088' }}>
-          <div className="modal-dialog modal-lg modal-dialog-centered">
-            <div className="modal-content border-0 shadow">
-              <div className="modal-header bg-primary text-white">
-                <h5 className="modal-title fw-bold">✏️ Editar Ingreso</h5>
-                <button className="btn-close" onClick={() => setEditando(null)} />
-              </div>
-              <div className="modal-body">
-                <form>
-                  <div className="row g-3">
-                    <div className="col-md-6 form-floating">
-                      <input
-                        type="date"
-                        className="form-control"
-                        id="fecha"
-                        value={editando.fecha?.substring(0, 10)}
-                        onChange={(e) => setEditando({ ...editando, fecha: e.target.value })}
-                      />
-                      <label htmlFor="fecha">📅 Fecha</label>
-                    </div>
-
-                    <div className="col-md-6 form-floating">
-                      <input
-                        type="number"
-                        className="form-control"
-                        min="0.01"
-                        step="any"
-                        id="cantidad"
-                        value={editando.cantidad}
-                        onChange={(e) =>
-                          setEditando({ ...editando, cantidad: parseFloat(e.target.value) })
-                        }
-                      />
-                      <label htmlFor="cantidad">🔢 Cantidad</label>
-                    </div>
-
-                    <div className="col-md-6 form-floating">
-                      <input
-                        type="number"
-                        className="form-control"
-                        min="0"
-                        step="0.01"
-                        id="precio_unitario"
-                        value={editando.precio_unitario}
-                        onChange={(e) =>
-                          setEditando({
-                            ...editando,
-                            precio_unitario: parseFloat(e.target.value),
-                          })
-                        }
-                      />
-                      <label htmlFor="precio_unitario">💲 Precio Unitario</label>
-                    </div>
-
-                    <div className="col-md-6 form-floating">
-                      <select
-                        className="form-select"
-                        id="unidad"
-                        value={editando.unidad}
-                        onChange={(e) => setEditando({ ...editando, unidad: e.target.value })}
-                      >
-                        <option value="litro">Litro</option>
-                        <option value="medio_litro">Medio Litro</option>
-                        <option value="3litros">3 Litros</option>
-                        <option value="unidad">Unidad</option>
-                        <option value="kilogramo">Kilogramo</option>
-                        <option value="gramo">Gramo</option>
-                      </select>
-                      <label htmlFor="unidad">📏 Unidad</label>
-                    </div>
-
-                    <div className="col-12 form-floating">
-                      <textarea
-                        className="form-control"
-                        id="observaciones"
-                        style={{ minHeight: '80px' }}
-                        value={editando.observaciones || ''}
-                        onChange={(e) =>
-                          setEditando({ ...editando, observaciones: e.target.value })
-                        }
-                      />
-                      <label htmlFor="observaciones">📝 Observaciones</label>
+                      <div className="d-flex justify-content-end gap-2 mt-3">
+                        <button
+                          className="btn btn-sm btn-outline-warning w-50"
+                          onClick={() => setEditando({ ...ingreso })}
+                        >
+                          📝 Editar
+                        </button>
+                        <button
+                          className="btn btn-sm btn-outline-danger w-50"
+                          onClick={() => eliminarIngreso(ingreso.id)}
+                        >
+                          🗑 Eliminar
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </form>
-              </div>
-              <div className="modal-footer bg-light">
-                <button className="btn btn-outline-secondary" onClick={() => setEditando(null)}>
-                  Cancelar
-                </button>
-                <button className="btn btn-success" onClick={guardarEdicion}>
-                  Guardar Cambios
-                </button>
+                );
+              })}
+            </div>
+
+            {/* Vista tabla en escritorio */}
+            <div className="table-responsive d-none d-md-block">
+              <table className="table table-bordered align-middle text-center table-sm">
+                <thead className="table-light text-dark">
+                  <tr>
+                    <th>📅 Fecha</th>
+                    <th>🧴 Producto</th>
+                    <th>🔢 Cantidad</th>
+                    <th>📏 Unidad</th>
+                    <th>💲 Precio Unit.</th>
+                    <th>💰 Total</th>
+                    <th>📝 Observaciones</th>
+                    <th>⚙️</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {historial.map((ingreso) => {
+                    const total = ingreso.cantidad * ingreso.precio_unitario;
+                    return (
+                      <tr key={ingreso.id}>
+                        <td>{new Date(ingreso.fecha).toLocaleDateString()}</td>
+                        <td className="text-start">{ingreso.producto_nombre}</td>
+                        <td>{ingreso.cantidad}</td>
+                        <td>{ingreso.unidad}</td>
+                        <td>${ingreso.precio_unitario.toFixed(2)}</td>
+                        <td className="fw-bold text-success">${total.toFixed(2)}</td>
+                        <td>{ingreso.observaciones || '-'}</td>
+                        <td className="d-flex justify-content-center gap-1 flex-wrap">
+                          <button
+                            className="btn btn-sm btn-outline-warning"
+                            onClick={() => setEditando({ ...ingreso })}
+                          >
+                            📝
+                          </button>
+                          <button
+                            className="btn btn-sm btn-outline-danger"
+                            onClick={() => eliminarIngreso(ingreso.id)}
+                          >
+                            🗑
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+
+        {/* Modal edición igual */}
+        {editando && (
+          <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: '#00000088' }}>
+            <div className="modal-dialog modal-lg modal-dialog-centered">
+              <div className="modal-content border-0 shadow">
+                <div className="modal-header bg-primary text-white">
+                  <h5 className="modal-title fw-bold">✏️ Editar Ingreso</h5>
+                  <button className="btn-close" onClick={() => setEditando(null)} />
+                </div>
+                <div className="modal-body">
+                  <form>
+                    <div className="row g-3">
+                      <div className="col-md-6 form-floating">
+                        <input
+                          type="date"
+                          className="form-control"
+                          value={editando.fecha?.substring(0, 10)}
+                          onChange={(e) => setEditando({ ...editando, fecha: e.target.value })}
+                        />
+                        <label>📅 Fecha</label>
+                      </div>
+
+                      <div className="col-md-6 form-floating">
+                        <input
+                          type="number"
+                          className="form-control"
+                          min="0.01"
+                          step="any"
+                          value={editando.cantidad}
+                          onChange={(e) =>
+                            setEditando({ ...editando, cantidad: parseFloat(e.target.value) })
+                          }
+                        />
+                        <label>🔢 Cantidad</label>
+                      </div>
+
+                      <div className="col-md-6 form-floating">
+                        <input
+                          type="number"
+                          className="form-control"
+                          min="0"
+                          step="0.01"
+                          value={editando.precio_unitario}
+                          onChange={(e) =>
+                            setEditando({
+                              ...editando,
+                              precio_unitario: parseFloat(e.target.value),
+                            })
+                          }
+                        />
+                        <label>💲 Precio Unitario</label>
+                      </div>
+
+                      <div className="col-md-6 form-floating">
+                        <select
+                          className="form-select"
+                          value={editando.unidad}
+                          onChange={(e) => setEditando({ ...editando, unidad: e.target.value })}
+                        >
+                          <option value="litro">Litro</option>
+                          <option value="medio_litro">Medio Litro</option>
+                          <option value="3litros">3 Litros</option>
+                          <option value="unidad">Unidad</option>
+                          <option value="kilogramo">Kilogramo</option>
+                          <option value="gramo">Gramo</option>
+                        </select>
+                        <label>📏 Unidad</label>
+                      </div>
+
+                      <div className="col-12 form-floating">
+                        <textarea
+                          className="form-control"
+                          style={{ minHeight: '80px' }}
+                          value={editando.observaciones || ''}
+                          onChange={(e) =>
+                            setEditando({ ...editando, observaciones: e.target.value })
+                          }
+                        />
+                        <label>📝 Observaciones</label>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+                <div className="modal-footer bg-light">
+                  <button className="btn btn-outline-secondary" onClick={() => setEditando(null)}>
+                    Cancelar
+                  </button>
+                  <button className="btn btn-success" onClick={guardarEdicion}>
+                    Guardar Cambios
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
-  </div>
   );
 }
