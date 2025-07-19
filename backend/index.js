@@ -15,13 +15,15 @@ const app = express();
 
 app.use(cors({
   origin: [
-    'http://localhost:5173', // frontend local
-    'https://stock-app-cruzguillermos-projects.vercel.app', // vercel
-    'https://stock-app-n514.onrender.com' // si accedés desde render directamente
+    'http://localhost:5173',
+    'https://stock-app-cruzguillermos-projects.vercel.app',
+    'https://stock-app-git-main-cruzguillermos-projects.vercel.app', // <-- Agregado
+    'https://stock-app-n514.onrender.com'
   ],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'], // incluye PATCH
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   credentials: true
 }));
+
 
 
 
