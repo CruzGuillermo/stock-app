@@ -6,6 +6,7 @@ const ventasRoutes = require('./routes/ventas');
 const ingresosStockRoutes = require('./routes/ingresosStock');
 const ofertasRoutes = require('./routes/ofertas');
 const resumenRoutes = require('./routes/resumen');
+const loginRoutes = require('./routes/login');
 
 const app = express();
 
@@ -37,6 +38,7 @@ app.use('/api/ventas', ventasRoutes);
 app.use('/api/ingresos-stock', ingresosStockRoutes);
 app.use('/api/ofertas', ofertasRoutes);
 app.use('/api/resumen', resumenRoutes);
+app.use('/api/login', loginRoutes);
 
 // Verificación de conexión a la base de datos
 const pool = require('./db/database');

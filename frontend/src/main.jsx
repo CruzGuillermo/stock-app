@@ -4,6 +4,7 @@ import './index.css';
 import App from './App.jsx';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import axios from 'axios';
+import { UserProvider } from './components/UserContext.jsx';
 
 // Detectar si estamos en localhost para desarrollo
 const isLocalhost =
@@ -21,6 +22,8 @@ axios.defaults.headers.common['Content-Type'] = 'application/json';
 const root = createRoot(document.getElementById('root'));
 root.render(
   <StrictMode>
-    <App />
+    <UserProvider>
+      <App />
+    </UserProvider>
   </StrictMode>
 );
